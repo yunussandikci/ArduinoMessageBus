@@ -1,7 +1,7 @@
 
-# MessageBus
+# ArduinoMessageBus
 
-MessageBus is a simple, type-safe, and lightweight publish-subscribe (pub/sub) library for handling function invocations based on topic subscriptions in Arduino projects. It enables decoupled communication between different parts of your application without direct dependencies.
+ArduinoMessageBus is a simple, type-safe, and lightweight publish-subscribe (pub/sub) library for handling function invocations based on topic subscriptions in Arduino projects. It enables decoupled communication between different parts of your application without direct dependencies.
 
 ## Features
 - **Type-Safe Subscriptions** – Supports parameterized callbacks with strict type checking.
