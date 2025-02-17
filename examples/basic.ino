@@ -1,4 +1,5 @@
 #include <MessageBus.h>
+#include <Arduino.h>
 
 MessageBus bus;
 
@@ -16,7 +17,7 @@ void setup() {
 
 void loop() {
     // Publish a random value to the "sensor_value" topic
-    bus.publish("sensor_value", random(0, 100));
+    bus.publishMessage("sensor_value", random(0, 100));
 
     // Wait 3 seconds
     delay(3000);

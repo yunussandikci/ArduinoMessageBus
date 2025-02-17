@@ -1,28 +1,30 @@
-
 # ArduinoMessageBus
 
 ArduinoMessageBus is a simple, type-safe, and lightweight publish-subscribe (pub/sub) library for handling function invocations based on topic subscriptions in Arduino projects. It enables decoupled communication between different parts of your application without direct dependencies.
 
 ## Features
 - **Type-Safe Subscriptions** – Supports parameterized callbacks with strict type checking.
-- **Multiple Subscribers per Topic** – Allow multiple functions to receive messages on the same topic.
+- **Multiple Subscribers per Topic** – Allows multiple functions to receive messages on the same topic.
 - **Efficient & Lightweight** – Uses `std::unordered_map` and `std::shared_ptr` for memory efficiency.
 - **Minimalistic API** – Simple `subscribe` and `publish` functions for easy integration.
 - **Asynchronous Event Handling** – Enables event-driven programming in embedded systems.
+- **Message Storage** – Optionally store the latest message for a topic for later retrieval.
 
 ## Installation
 ### Arduino IDE
-1. Download the latest release from [GitHub](https://github.com/yourname/MessageBus).
+1. Download the latest release from GitHub.
 2. Extract and place the `MessageBus` folder in your Arduino `libraries/` directory.
 3. Restart the Arduino IDE.
 
 ### PlatformIO
-```sh
-pio lib install "MessageBus"
+Add the following to your `platformio.ini` file:
+```ini
+lib_deps =
+    yunussandikci/MessageBus
 ```
 
 ## Getting Started
-### **Basic Example**
+### Basic Example
 This example demonstrates how to subscribe to a topic and publish messages.
 
 ```cpp
@@ -42,14 +44,14 @@ void setup() {
     bus.subscribe<int>("test", callback);
 
     // Publish an integer message to "test"
-    bus.publish("test", 42);
+    bus.publishMessage("test", 42);
 }
 
 void loop() {
 }
 ```
 
-### **Multiple Subscribers**
+### Multiple Subscribers
 You can attach multiple subscribers to the same topic:
 
 ```cpp
@@ -73,19 +75,20 @@ void setup() {
     bus.subscribe<int>("event", callback1);
     bus.subscribe<int>("event", callback2);
 
-    bus.publish("event", 99);
+    bus.publishMessage("event", 99);
 }
 
 void loop() {
 }
 ```
+
 **Expected Output:**
 ```
 Callback1 received: 99
 Callback2 received: 99
 ```
 
-### **Lambda Callbacks**
+### Lambda Callbacks
 You can use lambda functions to keep code more concise:
 
 ```cpp
@@ -97,22 +100,22 @@ void setup() {
     Serial.begin(115200);
     
     bus.subscribe<int>("number", [](int num) {
-        Serial.printf("Received number: %d
-", num);
+        Serial.printf("Received number: %d\n", num);
     });
 
-    bus.publish("number", 7);
+    bus.publishMessage("number", 7);
 }
 
 void loop() {
 }
 ```
+
 **Expected Output:**
 ```
 Received number: 7
 ```
 
-### **Publishing Multiple Parameters**
+### Publishing Multiple Parameters
 MessageBus allows publishing multiple parameters to a topic:
 
 ```cpp
@@ -121,60 +124,87 @@ MessageBus allows publishing multiple parameters to a topic:
 MessageBus bus;
 
 void sensorHandler(int id, float value) {
-    Serial.printf("Sensor %d reports %.2f
-", id, value);
+    Serial.printf("Sensor %d reports %.2f\n", id, value);
 }
 
 void setup() {
     Serial.begin(115200);
     
     bus.subscribe<int, float>("sensor", sensorHandler);
-    bus.publish("sensor", 1, 23.5f);
+    bus.publishMessage("sensor", 1, 23.5f);
 }
 
 void loop() {
 }
 ```
+
 **Expected Output:**
 ```
 Sensor 1 reports 23.50
 ```
 
 ## API Reference
-### **`subscribe<Args...>(const char* topic, Callable&& callback)`**
+### `subscribe<Args...>(const char* topic, Callable&& callback)`
 Subscribes a function to a topic. When a message is published on this topic, the function will be called with the provided arguments.
 
 #### Parameters:
-- `topic` – The topic name (const char*).
+- `topic` – The topic name (`const char*`).
 - `callback` – A function that takes the same parameter types as those published to the topic.
 
 #### Example Usage:
 ```cpp
 bus.subscribe<int, float>("sensor", [](int id, float value) {
-    Serial.printf("Sensor %d reports %.2f
-", id, value);
+    Serial.printf("Sensor %d reports %.2f\n", id, value);
 });
 ```
 
-### **`publish<Args...>(const char* topic, Args... args)`**
+### `publishMessage<Args...>(const char* topic, Args... args)`
 Publishes a message to all subscribers of the given topic. Each subscriber's function will be executed with the provided arguments.
 
 #### Parameters:
-- `topic` – The topic name (const char*).
+- `topic` – The topic name (`const char*`).
 - `args...` – The values to pass to the subscriber callbacks.
 
 #### Example Usage:
 ```cpp
-bus.publish("sensor", 1, 23.5f);
+bus.publishMessage("sensor", 1, 23.5f);
 ```
 
-### **Performance Considerations**
+### `publishAndStoreMessage<Args...>(const char* topic, Args... args)`
+Publishes a message to all subscribers and stores the latest message for the topic.
+
+#### Parameters:
+- `topic` – The topic name (`const char*`).
+- `args...` – The values to pass to the subscriber callbacks.
+
+#### Example Usage:
+```cpp
+bus.publishAndStoreMessage("sensor", 1, 23.5f);
+```
+
+### `getLatestMessage<Args...>(const char* topic)`
+Retrieves the latest message stored for a topic.
+
+#### Parameters:
+- `topic` – The topic name (`const char*`).
+
+#### Example Usage:
+```cpp
+auto message = bus.getLatestMessage<int, float>("sensor");
+if (message) {
+    int id = std::get<0>(*message);
+    float value = std::get<1>(*message);
+    Serial.printf("Latest sensor data: %d, %.2f\n", id, value);
+}
+```
+
+## Performance Considerations
 - The library uses `std::unordered_map` for fast topic lookup.
 - Callback functions are stored as `std::shared_ptr`, ensuring memory safety.
 - Suitable for real-time applications where message processing time is critical.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## Contributing
-Contributions are welcome! Feel free to submit pull requests or report issues on [GitHub](https://github.com/yourname/MessageBus).
+Contributions are welcome! Feel free to submit pull requests or report issues on GitHub.
